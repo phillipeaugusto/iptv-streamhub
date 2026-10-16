@@ -119,7 +119,7 @@ export function HomeView() {
           <h2>TV ao vivo</h2>
           <Link to="/live">Ver tudo</Link>
         </div>
-        {vm.isLoading ? (
+        {vm.liveLoading ? (
           <PosterSkeletonGrid count={6} />
         ) : (
           <div className={styles.rail}>
@@ -141,7 +141,7 @@ export function HomeView() {
           <h2>Filmes</h2>
           <Link to="/movies">Ver tudo</Link>
         </div>
-        {vm.isLoading ? (
+        {vm.moviesLoading ? (
           <PosterSkeletonGrid count={6} />
         ) : (
           <div className={styles.grid}>
@@ -171,7 +171,7 @@ export function HomeView() {
           <h2>Séries</h2>
           <Link to="/series">Ver tudo</Link>
         </div>
-        {vm.isLoading ? (
+        {vm.seriesLoading ? (
           <PosterSkeletonGrid count={6} />
         ) : (
           <div className={styles.grid}>

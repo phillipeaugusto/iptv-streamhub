@@ -3,6 +3,7 @@ import { Play, RefreshCw } from 'lucide-react'
 import { EmptyState } from '@/shared/components/feedback/EmptyState'
 import { ErrorState } from '@/shared/components/feedback/ErrorState'
 import { PosterSkeletonGrid } from '@/shared/components/feedback/Skeleton'
+import { CatalogPager } from '@/shared/components/media/CatalogPager'
 import { CategoryChips } from '@/shared/components/media/CategoryChips'
 import { ContentCard } from '@/shared/components/media/ContentCard'
 import { SearchBar } from '@/shared/components/media/SearchBar'
@@ -10,12 +11,14 @@ import { Button } from '@/shared/components/ui/Button'
 import { Skeleton } from '@/shared/components/ui/Skeleton'
 import { Sheet, SheetBody, SheetContent, SheetHeader } from '@/shared/components/ui/Sheet'
 import { useIsMobile } from '@/shared/hooks/useIsMobile'
+import { usePagedList } from '@/shared/hooks/usePagedList'
 import { useMoviesViewModel } from './useMoviesViewModel'
 import styles from '@/shared/theme/views.module.css'
 
 export function MoviesView() {
   const vm = useMoviesViewModel()
   const isMobile = useIsMobile()
+  const pagedMovies = usePagedList(vm.movies, isMobile ? 24 : 48)
   const sheetOpen = isMobile && Boolean(vm.selectedMovieId)
   const detailsRef = useRef<HTMLElement | null>(null)
 
@@ -110,20 +113,28 @@ export function MoviesView() {
                   description="Tente outra categoria ou busca."
                 />
               ) : (
-                <div className={styles.grid} key={vm.categoryId}>
-                  {vm.movies.map((movie) => (
-                    <ContentCard
-                      key={movie.id}
-                      title={movie.name}
-                      imageUrl={movie.posterUrl}
-                      subtitle={movie.year}
-                      badge={vm.selectedMovieId === movie.id ? 'Selecionado' : undefined}
-                      selected={vm.selectedMovieId === movie.id}
-                      isFavorite={vm.isFavorite(movie.id)}
-                      onToggleFavorite={() => vm.toggleFavorite(movie)}
-                      onClick={() => vm.setSelectedMovieId(movie.id)}
-                    />
-                  ))}
+                <div key={vm.categoryId}>
+                  <div className={styles.grid}>
+                    {pagedMovies.visible.map((movie) => (
+                      <ContentCard
+                        key={movie.id}
+                        title={movie.name}
+                        imageUrl={movie.posterUrl}
+                        subtitle={movie.year}
+                        badge={vm.selectedMovieId === movie.id ? 'Selecionado' : undefined}
+                        selected={vm.selectedMovieId === movie.id}
+                        isFavorite={vm.isFavorite(movie.id)}
+                        onToggleFavorite={() => vm.toggleFavorite(movie)}
+                        onClick={() => vm.setSelectedMovieId(movie.id)}
+                      />
+                    ))}
+                  </div>
+                  <CatalogPager
+                    shown={pagedMovies.shown}
+                    total={pagedMovies.total}
+                    hasMore={pagedMovies.hasMore}
+                    onLoadMore={pagedMovies.loadMore}
+                  />
                 </div>
               )}
 

@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { CalendarDays, ChevronDown, ChevronUp, ListMusic, RefreshCw } from 'lucide-react'
 import { EmptyState } from '@/shared/components/feedback/EmptyState'
 import { ErrorState } from '@/shared/components/feedback/ErrorState'
+import { CatalogPager } from '@/shared/components/media/CatalogPager'
 import { CategoryChips } from '@/shared/components/media/CategoryChips'
 import { ChannelListItem } from '@/shared/components/media/ChannelListItem'
 import { SearchBar } from '@/shared/components/media/SearchBar'
@@ -10,6 +11,7 @@ import { Button } from '@/shared/components/ui/Button'
 import { Skeleton } from '@/shared/components/ui/Skeleton'
 import { Sheet, SheetBody, SheetContent, SheetHeader } from '@/shared/components/ui/Sheet'
 import { useIsMobile } from '@/shared/hooks/useIsMobile'
+import { usePagedList } from '@/shared/hooks/usePagedList'
 import { playbackAllowedOrigin } from '@/shared/utils/iptvProxy'
 import { useLiveTvViewModel } from './useLiveTvViewModel'
 import styles from '@/shared/theme/views.module.css'
@@ -17,6 +19,7 @@ import styles from '@/shared/theme/views.module.css'
 export function LiveTvView() {
   const vm = useLiveTvViewModel()
   const isMobile = useIsMobile()
+  const pagedChannels = usePagedList(vm.channels, isMobile ? 40 : 80)
   const [sheetOpen, setSheetOpen] = useState(false)
   const [epgOpen, setEpgOpen] = useState(false)
 
@@ -30,7 +33,7 @@ export function LiveTvView() {
 
   const channelList = (
     <div className={`${styles.channelList} ${styles.channelListSheet}`}>
-      {vm.channels.map((channel) => (
+      {pagedChannels.visible.map((channel) => (
         <ChannelListItem
           key={channel.id}
           name={channel.name}
@@ -45,12 +48,18 @@ export function LiveTvView() {
           onToggleFavorite={() => vm.toggleFavorite(channel)}
         />
       ))}
+      <CatalogPager
+        shown={pagedChannels.shown}
+        total={pagedChannels.total}
+        hasMore={pagedChannels.hasMore}
+        onLoadMore={pagedChannels.loadMore}
+      />
     </div>
   )
 
   const channelListDesktop = (
     <div className={`${styles.channelList} ${styles.channelListDesktop}`}>
-      {vm.channels.map((channel) => (
+      {pagedChannels.visible.map((channel) => (
         <ChannelListItem
           key={channel.id}
           name={channel.name}
@@ -62,6 +71,12 @@ export function LiveTvView() {
           onToggleFavorite={() => vm.toggleFavorite(channel)}
         />
       ))}
+      <CatalogPager
+        shown={pagedChannels.shown}
+        total={pagedChannels.total}
+        hasMore={pagedChannels.hasMore}
+        onLoadMore={pagedChannels.loadMore}
+      />
     </div>
   )
 

@@ -1,0 +1,14 @@
+.pager {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.9rem 0 0.2rem;
+  color: var(--muted-foreground);
+  font-size: var(--text-sm);
+  text-align: center;
+}
+
+.pager p {
+  margin: 0;
+}

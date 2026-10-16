@@ -143,10 +143,9 @@ export function useHomeViewModel() {
       0,
       12,
     ),
-    isLoading:
-      (liveQuery.isLoading && !liveQuery.data) ||
-      (moviesQuery.isLoading && !moviesQuery.data) ||
-      (seriesQuery.isLoading && !seriesQuery.data),
+    liveLoading: liveQuery.isLoading && !liveQuery.data,
+    moviesLoading: moviesQuery.isLoading && !moviesQuery.data,
+    seriesLoading: seriesQuery.isLoading && !seriesQuery.data,
     isRefreshing,
     error:
       refreshError ||
