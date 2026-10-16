@@ -1,6 +1,13 @@
 import { AuthError, type AuthFailureReason } from '@/shared/types/auth'
 import axios from 'axios'
 
+function proxyPlainText(data: unknown): string | null {
+  if (typeof data !== 'string') return null
+  const text = data.trim()
+  if (!text || text.startsWith('{') || text.startsWith('[')) return null
+  return text.slice(0, 280)
+}
+
 export function mapAxiosErrorToAuthError(error: unknown): AuthError {
   if (error instanceof AuthError) {
     return error
@@ -37,12 +44,17 @@ export function mapAxiosErrorToAuthError(error: unknown): AuthError {
     }
 
     if (error.response?.status === 401 || error.response?.status === 403) {
+      const proxyText = proxyPlainText(error.response.data)
+      if (proxyText) {
+        return new AuthError('server_unreachable', proxyText, error.response.status)
+      }
       return new AuthError('invalid_credentials', 'Usuário ou senha inválidos.', error.response.status)
     }
 
+    const proxyText = proxyPlainText(error.response?.data)
     return new AuthError(
       'server_unreachable',
-      `Falha ao contatar o servidor (HTTP ${error.response?.status ?? 'desconhecido'}).`,
+      proxyText ?? `Falha ao contatar o servidor (HTTP ${error.response?.status ?? 'desconhecido'}).`,
       error.response?.status,
     )
   }
