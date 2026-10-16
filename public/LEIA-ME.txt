@@ -1,0 +1,35 @@
+StreamHub — como abrir nesta pasta
+=================================
+
+NÃO abra o index.html com duplo clique.
+O navegador bloqueia os arquivos .js nesse modo (file://).
+
+Opção A — hospedagem FTP
+------------------------
+Envie TODO o conteúdo desta pasta para o servidor:
+  - index.html
+  - favicon.svg
+  - pasta assets/
+
+Depois abra pelo navegador com o endereço do site, por exemplo:
+  http://seusite.com/
+  http://seusite.com/#/login
+
+Opção B — outro PC (Windows)
+----------------------------
+1. Deixe esta pasta no PC
+2. Dê duplo clique em: abrir-windows.bat
+3. Abra no navegador: http://localhost:8080/
+
+Opção C — outro PC (Mac / Linux)
+--------------------------------
+No Terminal, dentro desta pasta:
+
+  python3 -m http.server 8080
+
+Depois abra: http://localhost:8080/
+
+Se o login falhar no site/FTP
+-----------------------------
+O app chama o servidor IPTV direto do navegador.
+O provedor precisa liberar CORS para o domínio onde o site está hospedado.

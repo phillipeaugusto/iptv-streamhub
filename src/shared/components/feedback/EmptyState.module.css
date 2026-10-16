@@ -1,0 +1,24 @@
+.wrap {
+  padding: 2rem 1.25rem;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-lg);
+  background: rgba(255, 255, 255, 0.02);
+  text-align: center;
+  display: grid;
+  gap: 0.55rem;
+  justify-items: center;
+}
+
+.wrap h3 {
+  margin: 0;
+  font-size: var(--text-lg);
+  font-weight: 650;
+}
+
+.wrap p {
+  margin: 0;
+  max-width: 42ch;
+  color: var(--muted-foreground);
+  line-height: var(--leading-normal);
+  font-size: var(--text-sm);
+}

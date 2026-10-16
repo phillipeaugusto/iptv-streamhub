@@ -1,0 +1,25 @@
+.wrap {
+  padding: 1.5rem;
+  border-radius: var(--radius);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  background: rgba(239, 68, 68, 0.08);
+}
+
+.wrap h3 {
+  margin: 0 0 0.4rem;
+}
+
+.wrap p {
+  margin: 0 0 1rem;
+  color: #fecaca;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+.button {
+  border: 0;
+  border-radius: 999px;
+  padding: 0.55rem 1rem;
+  background: var(--accent);
+  color: white;
+}

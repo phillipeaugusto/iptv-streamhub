@@ -1,0 +1,146 @@
+.listWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  min-height: 0;
+}
+
+.filter {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-height: var(--touch-min);
+  padding: 0 0.85rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--muted-foreground);
+  flex-shrink: 0;
+}
+
+.filter input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  color: var(--foreground);
+  outline: none;
+  min-height: var(--touch-min);
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  overflow-y: auto;
+  padding-right: 0.15rem;
+  scroll-padding-block: 0.5rem;
+  scrollbar-width: thin;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+  min-height: 0;
+  flex: 1;
+}
+
+.trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  width: 100%;
+  min-height: var(--touch-min);
+  padding: 0.65rem 0.9rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--foreground);
+  text-align: left;
+}
+
+.triggerLabel {
+  display: grid;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.triggerHint {
+  font-size: var(--text-xs);
+  color: var(--muted-foreground);
+  font-weight: 500;
+}
+
+.trigger strong {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chip {
+  flex: 0 0 auto;
+  width: 100%;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--muted-foreground);
+  border-radius: var(--radius);
+  padding: 0.65rem 0.85rem;
+  min-height: var(--touch-min);
+  font-size: var(--text-sm);
+  font-weight: 550;
+  text-align: left;
+  white-space: normal;
+  line-height: 1.25;
+  transition:
+    background var(--duration-fast) var(--ease),
+    color var(--duration-fast) var(--ease),
+    border-color var(--duration-fast) var(--ease);
+}
+
+.chip:hover,
+.chip:focus-visible {
+  color: var(--foreground);
+  border-color: #3f3f46;
+}
+
+.active {
+  background: var(--primary-soft);
+  border-color: rgba(139, 92, 246, 0.45);
+  color: var(--foreground);
+}
+
+.empty {
+  margin: 0;
+  padding: 1rem 0.25rem;
+  color: var(--muted-foreground);
+  font-size: var(--text-sm);
+}
+
+.sheetContent {
+  /* altura estável para listas longas rolarem dentro do body */
+  height: min(88dvh, 720px);
+  max-height: min(88dvh, 720px);
+}
+
+.sheetBody {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.sheetBody .listWrap {
+  flex: 1;
+  min-height: 0;
+}
+
+@media (min-width: 960px) {
+  .column {
+    max-height: calc(100dvh - 160px);
+  }
+
+  .listWrap {
+    position: sticky;
+    top: 0.5rem;
+    max-height: calc(100dvh - 160px);
+  }
+}

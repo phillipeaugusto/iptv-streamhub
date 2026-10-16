@@ -1,0 +1,163 @@
+.card {
+  min-width: 0;
+}
+
+.selected .media {
+  border-color: var(--primary);
+  box-shadow:
+    0 0 0 2px var(--primary),
+    0 0 0 5px rgba(139, 92, 246, 0.28);
+}
+
+.selected .text strong {
+  color: var(--accent);
+}
+
+.media {
+  position: relative;
+  width: 100%;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--card);
+  color: inherit;
+  display: block;
+  transition:
+    transform var(--duration) var(--ease),
+    border-color var(--duration) var(--ease),
+    box-shadow var(--duration) var(--ease);
+}
+
+.media:hover,
+.media:focus-visible {
+  transform: translateY(-2px);
+  border-color: rgba(139, 92, 246, 0.45);
+  box-shadow: var(--shadow);
+}
+
+.poster {
+  aspect-ratio: 2 / 3;
+}
+
+.square {
+  aspect-ratio: 1 / 1;
+}
+
+.wide {
+  aspect-ratio: 16 / 9;
+}
+
+.media img,
+.fallback {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.fallback {
+  display: grid;
+  place-items: center;
+  background: linear-gradient(160deg, #1f1f27, #121216);
+  color: var(--muted-foreground);
+  font-size: 1.8rem;
+  font-weight: 700;
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(transparent 40%, rgba(0, 0, 0, 0.55));
+  opacity: 0;
+  transition: opacity var(--duration) var(--ease);
+  pointer-events: none;
+}
+
+.media:hover .overlay,
+.media:focus-visible .overlay {
+  opacity: 1;
+}
+
+.play {
+  width: 2.6rem;
+  height: 2.6rem;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  background: rgba(139, 92, 246, 0.92);
+  color: white;
+}
+
+.badge {
+  position: absolute;
+  top: 0.55rem;
+  left: 0.55rem;
+}
+
+.progressTrack {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.progressFill {
+  height: 100%;
+  background: var(--primary);
+}
+
+.meta {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.35rem;
+  align-items: start;
+  padding: 0.65rem 0.1rem 0;
+}
+
+.text {
+  min-width: 0;
+  display: grid;
+  gap: 0.15rem;
+}
+
+.text strong {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.text span {
+  color: var(--muted-foreground);
+  font-size: var(--text-xs);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fav {
+  width: var(--touch-min) !important;
+  height: var(--touch-min) !important;
+  min-width: var(--touch-min) !important;
+  min-height: var(--touch-min) !important;
+}
+
+.favActive {
+  color: var(--primary) !important;
+}
+
+@media (hover: none) {
+  .overlay {
+    opacity: 0;
+  }
+
+  .selected .overlay,
+  .media:focus-visible .overlay {
+    opacity: 1;
+  }
+}

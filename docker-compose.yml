@@ -1,0 +1,12 @@
+# Uso local / referência. No Coolify prefira o Dockerfile (Dockerfile Build Pack).
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        VITE_APP_NAME: StreamHub IPTV
+        VITE_DEFAULT_SERVER_URL: ""
+    ports:
+      - "8080:80"
+    restart: unless-stopped

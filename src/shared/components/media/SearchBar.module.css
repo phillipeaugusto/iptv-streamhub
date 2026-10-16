@@ -1,0 +1,32 @@
+.wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  width: 100%;
+  max-width: 340px;
+  flex: 1 1 12rem;
+  min-width: 0;
+  color: var(--muted-foreground);
+}
+
+.wrap > svg {
+  position: absolute;
+  left: 0.85rem;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.input {
+  padding-left: 2.35rem !important;
+  padding-right: 2.5rem !important;
+}
+
+.clear {
+  position: absolute;
+  right: 0.15rem;
+  width: var(--touch-min) !important;
+  height: var(--touch-min) !important;
+  min-width: var(--touch-min) !important;
+  min-height: var(--touch-min) !important;
+}

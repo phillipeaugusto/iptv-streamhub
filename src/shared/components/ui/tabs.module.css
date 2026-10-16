@@ -1,0 +1,33 @@
+.list {
+  display: inline-flex;
+  gap: 0.35rem;
+  padding: 0.3rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border);
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+.trigger {
+  border: 0;
+  background: transparent;
+  color: var(--muted-foreground);
+  border-radius: 999px;
+  padding: 0.55rem 0.95rem;
+  font-size: var(--text-sm);
+  font-weight: 550;
+  white-space: nowrap;
+  min-height: var(--touch-min);
+  transition: background var(--duration-fast) var(--ease), color var(--duration-fast) var(--ease);
+}
+
+.trigger[data-state='active'] {
+  background: var(--primary-soft);
+  color: var(--foreground);
+}
+
+.content {
+  margin-top: 1rem;
+  outline: none;
+}

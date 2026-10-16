@@ -1,0 +1,35 @@
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.header {
+  display: grid;
+  gap: 0.35rem;
+  padding: 1.1rem 1.15rem 0.35rem;
+}
+
+.title {
+  font-size: var(--text-lg);
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+
+.description {
+  color: var(--muted-foreground);
+  font-size: var(--text-sm);
+  line-height: var(--leading-normal);
+}
+
+.content {
+  padding: 1rem 1.15rem 1.15rem;
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0 1.15rem 1.15rem;
+}

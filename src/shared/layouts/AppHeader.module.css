@@ -1,0 +1,115 @@
+.header {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: center;
+  min-height: var(--header-height);
+  padding: calc(0.85rem + env(safe-area-inset-top, 0px)) 1rem 0.85rem;
+  border-bottom: 1px solid var(--border);
+  background: rgba(9, 9, 11, 0.72);
+  backdrop-filter: blur(12px);
+  position: sticky;
+  top: 0;
+  z-index: 15;
+}
+
+.leading {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  min-width: 0;
+  flex: 1;
+}
+
+.homeBtn {
+  flex-shrink: 0;
+  min-width: var(--touch-min);
+  min-height: var(--touch-min);
+}
+
+.titles {
+  min-width: 0;
+}
+
+.titles h1 {
+  font-size: var(--text-xl);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: var(--leading-tight);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.titles p {
+  margin-top: 0.15rem;
+  color: var(--muted-foreground);
+  font-size: var(--text-sm);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.desktopAction {
+  display: none;
+}
+
+@media (max-width: 359px) {
+  .titles p {
+    display: none;
+  }
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-shrink: 0;
+}
+
+.status {
+  display: none;
+}
+
+/* Ícone de busca sempre visível no mobile */
+.searchIcon {
+  display: inline-flex;
+  min-width: var(--touch-min);
+  min-height: var(--touch-min);
+}
+
+/* Busca com label + ⌘K só no desktop */
+.search {
+  display: none;
+}
+
+.search kbd {
+  margin-left: 0.35rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.05rem 0.35rem;
+  font-size: 0.7rem;
+  color: var(--muted-foreground);
+}
+
+@media (min-width: 720px) {
+  .header {
+    padding-inline: 1.35rem;
+  }
+
+  .status {
+    display: inline-flex;
+  }
+
+  .searchIcon {
+    display: none;
+  }
+
+  .search {
+    display: inline-flex;
+  }
+
+  .desktopAction {
+    display: inline-flex;
+  }
+}
