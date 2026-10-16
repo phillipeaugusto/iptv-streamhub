@@ -188,6 +188,12 @@ function lookupWith(addresses) {
 
 function requestOnce(target, method, headerSource, addresses, signal) {
   const lib = target.protocol === 'https:' ? https : http
+  const headers = {
+    Host: target.host,
+    'User-Agent': headerSource['user-agent'] || 'StreamHub-IPTV-Proxy/1.0',
+    Accept: headerSource.accept || '*/*',
+  }
+  if (headerSource.range) headers.Range = headerSource.range
   return new Promise((resolve, reject) => {
     const req = lib.request(
       target,
@@ -195,11 +201,7 @@ function requestOnce(target, method, headerSource, addresses, signal) {
         method,
         lookup: lookupWith(addresses),
         servername: target.hostname,
-        headers: {
-          Host: target.host,
-          'User-Agent': headerSource['user-agent'] || 'StreamHub-IPTV-Proxy/1.0',
-          Accept: headerSource.accept || '*/*',
-        },
+        headers,
       },
       (upstream) => resolve(upstream),
     )
@@ -218,7 +220,33 @@ function requestOnce(target, method, headerSource, addresses, signal) {
   })
 }
 
-async function openUpstream(startUrl, method, headerSource, signal) {
+function isRedirect(status) {
+  return status === 301 || status === 302 || status === 303 || status === 307 || status === 308
+}
+
+function requestIsHttps(req) {
+  const forwarded = String(req.headers['x-forwarded-proto'] || '')
+    .split(',')[0]
+    .trim()
+  if (forwarded === 'https' || req.socket?.encrypted === true) return true
+  const referer = String(req.headers.referer || req.headers.referrer || '')
+  return referer.startsWith('https://')
+}
+
+/** Filmes/séries Xtream respondem 302 para um CDN. O IP da VPS leva bloqueio da Cloudflare. */
+function shouldBounceMediaRedirect(pathname) {
+  return /\/(?:movie|series)\//i.test(pathname) || /\.(mp4|mkv|avi|webm|mov|m4v)(\?|$)/i.test(pathname)
+}
+
+function browserRedirectUrl(location, https) {
+  if (https && location.protocol === 'http:') {
+    location.protocol = 'https:'
+    if (location.port === '80') location.port = ''
+  }
+  return location
+}
+
+async function openUpstream(startUrl, method, headerSource, signal, followRedirects = true) {
   let current = new URL(startUrl)
   for (let hop = 0; hop < 5; hop += 1) {
     const safe = await assertSafeTarget(current.href)
@@ -226,12 +254,16 @@ async function openUpstream(startUrl, method, headerSource, signal) {
     const upstream = await requestOnce(current, method, headerSource, safe.addresses, signal)
     const status = upstream.statusCode ?? 502
     const location = upstream.headers.location
-    if (location && [301, 302, 303, 307, 308].includes(status)) {
+    if (location && isRedirect(status)) {
+      const next = new URL(location, current)
       upstream.resume()
-      current = new URL(location, current)
+      if (!followRedirects) {
+        return { upstream, finalUrl: current, redirectTo: next, status }
+      }
+      current = next
       continue
     }
-    return { upstream, finalUrl: current }
+    return { upstream, finalUrl: current, redirectTo: null, status }
   }
   throw new ProxyError('Muitos redirecionamentos do servidor IPTV.')
 }
@@ -350,12 +382,24 @@ async function handleProxy(req, res) {
   req.on('close', () => controller.abort())
 
   try {
-    const { upstream, finalUrl } = await openUpstream(
+    const bounceRedirect = shouldBounceMediaRedirect(targetPath)
+    const { upstream, finalUrl, redirectTo, status: redirectStatus } = await openUpstream(
       origin + targetPath,
       req.method,
       req.headers,
       controller.signal,
+      !bounceRedirect,
     )
+
+    if (redirectTo) {
+      const location = browserRedirectUrl(redirectTo, requestIsHttps(req))
+      send(res, redirectStatus || 302, '', {
+        Location: location.href,
+        'Cache-Control': 'no-store',
+        'Access-Control-Allow-Origin': '*',
+      })
+      return
+    }
 
     const status = upstream.statusCode ?? 502
     const contentType = String(upstream.headers['content-type'] || '')
@@ -379,6 +423,10 @@ async function handleProxy(req, res) {
     if (contentType) outHeaders['Content-Type'] = contentType
     const len = upstream.headers['content-length']
     if (len) outHeaders['Content-Length'] = String(len)
+    for (const name of ['accept-ranges', 'content-range']) {
+      const value = upstream.headers[name]
+      if (value) outHeaders[name] = String(value)
+    }
 
     res.writeHead(status, outHeaders)
     if (req.method === 'HEAD') {
