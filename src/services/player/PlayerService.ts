@@ -74,9 +74,23 @@ export function attachPlayer(options: AttachPlayerOptions): AttachedPlayer {
   let destroyed = false
   let qualities: Array<{ height?: number; bitrate: number; index: number }> = []
   let networkRetries = 0
+  let lastNetworkRecoveryAt = 0
+
+  const playbackCanContinue = () => {
+    if (video.ended) return false
+    if (video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) return true
+    if (video.buffered.length === 0) return false
+    const end = video.buffered.end(video.buffered.length - 1)
+    return end - video.currentTime > 0.4
+  }
+
+  const reportIfStuck = (error: PlayerServiceError) => {
+    if (destroyed || playbackCanContinue()) return
+    onError?.(error)
+  }
 
   const handleMediaError = () => {
-    onError?.(new PlayerServiceError('media', 'Falha ao decodificar ou reproduzir o conteúdo.'))
+    reportIfStuck(new PlayerServiceError('media', 'Falha ao decodificar ou reproduzir o conteúdo.'))
   }
 
   video.addEventListener('error', handleMediaError)
@@ -101,7 +115,9 @@ export function attachPlayer(options: AttachPlayerOptions): AttachedPlayer {
   if (isHlsUrl(url) && Hls.isSupported()) {
     hls = new Hls({
       enableWorker: true,
-      lowLatencyMode: true,
+      // Painéis Xtream usam HLS comum. Low-latency gera erro fatal de rede
+      // em playlist que não é LL-HLS, mesmo com o vídeo ainda no buffer.
+      lowLatencyMode: false,
       backBufferLength: 90,
       maxMaxBufferLength: 60,
       xhrSetup: (xhr) => {
@@ -119,25 +135,37 @@ export function attachPlayer(options: AttachPlayerOptions): AttachedPlayer {
       onManifestParsed?.(qualities)
       applyStartAndPlay()
     })
+    hls.on(Hls.Events.FRAG_LOADED, () => {
+      networkRetries = 0
+    })
     hls.on(Hls.Events.ERROR, (_event, data) => {
-      if (!data.fatal) return
-      if (data.type === Hls.ErrorTypes.NETWORK_ERROR && networkRetries < 2) {
+      if (!data.fatal || destroyed) return
+
+      if (data.type === Hls.ErrorTypes.NETWORK_ERROR) {
+        const now = Date.now()
+        if (now - lastNetworkRecoveryAt > 1000) {
+          lastNetworkRecoveryAt = now
+          hls?.startLoad()
+        }
         networkRetries += 1
-        hls?.startLoad()
-        onError?.(
+        // Enquanto houver imagem, o erro de um segmento não pode cobrir o vídeo.
+        if (playbackCanContinue() || networkRetries < 4) return
+        reportIfStuck(
           new PlayerServiceError(
             'network',
-            'Erro de rede no stream HLS (CORS/rede). Tentando novamente…',
+            'Falha ao carregar o stream. A rede caiu e não há mais buffer para continuar.',
           ),
         )
         return
       }
+
       if (data.type === Hls.ErrorTypes.MEDIA_ERROR) {
         hls?.recoverMediaError()
-        onError?.(new PlayerServiceError('hls', 'Erro de mídia HLS. Tentando recuperar…'))
+        reportIfStuck(new PlayerServiceError('hls', 'Erro de mídia HLS. Tentando recuperar…'))
         return
       }
-      onError?.(
+
+      reportIfStuck(
         new PlayerServiceError(
           'hls',
           'Falha ao carregar o stream. Verifique se o servidor libera CORS para mídia HLS e se a URL está acessível.',

@@ -143,7 +143,10 @@ export function VideoPlayer({
     const onPlay = () => setPlaying(true)
     const onPause = () => setPlaying(false)
     const onWaiting = () => setLoading(true)
-    const onPlaying = () => setLoading(false)
+    const onPlaying = () => {
+      setLoading(false)
+      setError(null)
+    }
     const onTimeUpdate = () => {
       setCurrent(video.currentTime)
       setDuration(video.duration || 0)
@@ -345,7 +348,22 @@ export function VideoPlayer({
       {error ? (
         <div className={styles.overlay}>
           <p>{error}</p>
-          <button type="button" onClick={() => setRetryToken((value) => value + 1)}>
+          <button
+            type="button"
+            onClick={() => {
+              const current = videoRef.current
+              const stillHasPicture =
+                current &&
+                !current.ended &&
+                (current.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA ||
+                  (!current.paused && current.currentTime > 0))
+              if (stillHasPicture) {
+                setError(null)
+                return
+              }
+              setRetryToken((value) => value + 1)
+            }}
+          >
             Tentar novamente
           </button>
         </div>

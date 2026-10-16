@@ -1,20 +1,54 @@
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import Hls from 'hls.js'
 import { attachPlayer, PlayerServiceError } from '@/services/player/PlayerService'
 
 vi.mock('hls.js', () => {
   class HlsMock {
-    static isSupported() {
-      return false
+    static supported = false
+    static latest: HlsMock | null = null
+    static Events = {
+      MANIFEST_PARSED: 'manifestParsed',
+      ERROR: 'error',
+      FRAG_LOADED: 'fragLoaded',
     }
+    static ErrorTypes = {
+      NETWORK_ERROR: 'networkError',
+      MEDIA_ERROR: 'mediaError',
+    }
+    static isSupported() {
+      return HlsMock.supported
+    }
+
+    handlers = new Map<string, Array<(event: string, data: unknown) => void>>()
+    startLoad = vi.fn()
+    recoverMediaError = vi.fn()
+    destroy = vi.fn()
     loadSource() {}
     attachMedia() {}
-    on() {}
-    destroy() {}
+
+    constructor() {
+      HlsMock.latest = this
+    }
+
+    on(event: string, callback: (event: string, data: unknown) => void) {
+      const list = this.handlers.get(event) ?? []
+      list.push(callback)
+      this.handlers.set(event, list)
+    }
+
+    emit(event: string, data: unknown) {
+      for (const callback of this.handlers.get(event) ?? []) callback(event, data)
+    }
   }
   return { default: HlsMock }
 })
 
-function createVideo(): HTMLVideoElement {
+type HlsMockInstance = {
+  startLoad: ReturnType<typeof vi.fn>
+  emit: (event: string, data: unknown) => void
+}
+
+function createVideo(overrides: Partial<HTMLVideoElement> = {}): HTMLVideoElement {
   const listeners = new Map<string, Set<EventListener>>()
   return {
     src: '',
@@ -22,6 +56,9 @@ function createVideo(): HTMLVideoElement {
     muted: false,
     currentTime: 0,
     paused: true,
+    ended: false,
+    readyState: 0,
+    buffered: { length: 0, end: () => 0 },
     canPlayType: () => '',
     play: vi.fn(async () => undefined),
     pause: vi.fn(),
@@ -35,8 +72,13 @@ function createVideo(): HTMLVideoElement {
     removeEventListener: (type: string, listener: EventListener) => {
       listeners.get(type)?.delete(listener)
     },
+    ...overrides,
   } as unknown as HTMLVideoElement
 }
+
+afterEach(() => {
+  ;(Hls as unknown as { supported: boolean }).supported = false
+})
 
 describe('PlayerService', () => {
   it('rejeita URL fora da origem autenticada', () => {
@@ -74,6 +116,51 @@ describe('PlayerService', () => {
       autoplay: false,
     })
     expect(video.src).toContain('/iptv-proxy/h/')
+    player.destroy()
+  })
+
+  it('não avisa erro de rede enquanto o vídeo ainda tem imagem', () => {
+    ;(Hls as unknown as { supported: boolean }).supported = true
+    const onError = vi.fn()
+    const video = createVideo({ readyState: HTMLMediaElement.HAVE_CURRENT_DATA, paused: false })
+    const player = attachPlayer({
+      video,
+      url: 'http://iptv.example/live/user/pass/1.m3u8',
+      allowedOrigin: 'http://iptv.example',
+      autoplay: false,
+      onError,
+    })
+    const hls = (Hls as unknown as { latest: HlsMockInstance }).latest
+
+    hls.emit(Hls.Events.ERROR, { fatal: true, type: Hls.ErrorTypes.NETWORK_ERROR })
+
+    expect(hls.startLoad).toHaveBeenCalled()
+    expect(onError).not.toHaveBeenCalled()
+    player.destroy()
+  })
+
+  it('avisa erro de rede só depois de esgotar o buffer e as tentativas', () => {
+    ;(Hls as unknown as { supported: boolean }).supported = true
+    const onError = vi.fn()
+    const video = createVideo()
+    const player = attachPlayer({
+      video,
+      url: 'http://iptv.example/live/user/pass/1.m3u8',
+      allowedOrigin: 'http://iptv.example',
+      autoplay: false,
+      onError,
+    })
+    const hls = (Hls as unknown as { latest: HlsMockInstance }).latest
+    const fatal = { fatal: true, type: Hls.ErrorTypes.NETWORK_ERROR }
+
+    hls.emit(Hls.Events.ERROR, fatal)
+    hls.emit(Hls.Events.ERROR, fatal)
+    hls.emit(Hls.Events.ERROR, fatal)
+    expect(onError).not.toHaveBeenCalled()
+
+    hls.emit(Hls.Events.ERROR, fatal)
+    expect(onError).toHaveBeenCalledTimes(1)
+    expect(onError.mock.calls[0][0]).toBeInstanceOf(PlayerServiceError)
     player.destroy()
   })
 })
